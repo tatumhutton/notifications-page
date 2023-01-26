@@ -1,8 +1,7 @@
 const express = require("express");
-const path = require("path");
-const cors = require("cors");
 
 const app = express();
+
 const notifications = [
   {
     id: "1",
@@ -20,21 +19,8 @@ const notifications = [
     date: "1/23/2023",
   },
 ];
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
-
-app.use(express.static(path.join(__dirname, "src")));
-
-app.use((req, res, next) => {
-  res.setHeader("Content-Type", "application/json");
-  next();
-});
 
 app.get("/api/notifications", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
   res.json(notifications);
 });
 

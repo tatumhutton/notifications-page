@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MenuIcon from "@mui/icons-material/Menu";
+
 export type Notification = {
   id: string;
   message: string;
@@ -21,9 +22,6 @@ export type Notification = {
 };
 
 const styles = {
-  testStyle: {
-    backgroundColor: "black",
-  },
   dateText: {
     textAlign: "end" as const,
   },
@@ -31,40 +29,46 @@ const styles = {
     marginTop: "12px",
   },
   notification: {
-    width: "30%",
+    width: "40%",
   },
 };
 
 const Notifications: React.FC = () => {
+  //all notifications
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  //notifications shown in alerts
   const [shownNotifications, setShownNotifications] = useState<Notification[]>(
     []
   );
+  //menu anchor
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-
   const handleClose = () => {
     setAnchorEl(null);
   };
   function handleCloseNotification(id: string) {
-    setShownNotifications(shownNotifications.filter((n) => n.id !== id));
+    setShownNotifications(
+      shownNotifications.filter((notification) => notification.id !== id)
+    );
   }
 
   useEffect(() => {
+    //retrieve notifications from local storage
     const storedNotifications = localStorage.getItem("notifications");
     if (storedNotifications) {
       setNotifications(JSON.parse(storedNotifications));
     }
 
+    //get notifications from api
     const fetchNotifications = async () => {
       const response = await fetch("http://localhost:3001/api/notifications");
       const data = await response.json();
-      console.log(data);
       setNotifications(data);
       setShownNotifications(data);
+      //save in local storage
       localStorage.setItem("notifications", JSON.stringify(data));
     };
 
@@ -91,8 +95,8 @@ const Notifications: React.FC = () => {
           <div>
             <IconButton
               size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
+              aria-label="notifications"
+              aria-controls="notification-menu"
               aria-haspopup="true"
               onClick={handleMenu}
               color="inherit"
@@ -100,7 +104,7 @@ const Notifications: React.FC = () => {
               <NotificationsIcon />
             </IconButton>
             <Menu
-              id="menu-appbar"
+              id="notification-menu"
               anchorEl={anchorEl}
               anchorOrigin={{
                 vertical: "bottom",
@@ -110,26 +114,24 @@ const Notifications: React.FC = () => {
               onClose={handleClose}
             >
               {notifications.map((notification, index) => (
-                <div>
-                  <MenuItem divider>
-                    <Grid container>
-                      <Grid item xs={12} style={styles.dateText}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          component="div"
-                        >
-                          {notification.date}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle1" gutterBottom>
-                          {notification.message}
-                        </Typography>
-                      </Grid>
+                <MenuItem divider key={index}>
+                  <Grid container>
+                    <Grid item xs={12} style={styles.dateText}>
+                      <Typography variant="body2" color="text.secondary">
+                        {notification.date}
+                      </Typography>
                     </Grid>
-                  </MenuItem>
-                </div>
+                    <Grid item xs={12}>
+                      <Typography
+                        whiteSpace="break-spaces"
+                        variant="subtitle1"
+                        gutterBottom
+                      >
+                        {notification.message}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </MenuItem>
               ))}
             </Menu>
           </div>
@@ -144,10 +146,9 @@ const Notifications: React.FC = () => {
         alignContent="center"
       >
         {shownNotifications.map((notification, index) => (
-          <Grid item style={styles.notification}>
+          <Grid item style={styles.notification} key={notification.id}>
             <Alert
               severity="info"
-              key={notification.id}
               onClose={() => handleCloseNotification(notification.id)}
             >
               {notification.message}
